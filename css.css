@@ -21,7 +21,7 @@ body {
 }
 
 /* Media query for smaller screens */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .container {
     padding-left: 5px; 
     padding-right: 5px;
@@ -138,7 +138,7 @@ body {
     flex-basis: 50%;
 }
 
-@media (max-width: 728px) {
+@media screen and (max-width: 728px) {
     .section-2 {
         flex-direction: column-reverse;
     }
@@ -181,7 +181,7 @@ body {
     flex-direction: row;
 }
 
-@media (max-width: 728px) {
+@media screen and (max-width: 728px) {
     .section-3 {
         flex-direction: column;
     }
