@@ -160,7 +160,15 @@ body {
 }
 
 .s222 {
+    display: flex;
+justify-content: center;
     flex-basis: 20%;
+}
+
+.s222 img {
+    padding: 5px;
+    max-width: 80px;
+    border-radius: 10px;
 }
 
 .card {
@@ -261,7 +269,7 @@ body {
     display: block;
     position: fixed;
     top: 40%;
-    left: 49%; 
+    left: 45%; 
   }
 
   #intro svg {

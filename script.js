@@ -16,9 +16,9 @@ w1.addEventListener('mouseover', function() {
 });
 
 w2.addEventListener('mouseover', function() {
-    targetDiv.innerText = 'only for recruiters';
+    targetDiv.innerText = 'For recruiters';
     targetDiv.style.display = 'block';
-
+ 
 }
 );
 
