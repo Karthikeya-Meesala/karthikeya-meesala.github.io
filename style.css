@@ -1,16 +1,24 @@
-body, html {
-    height: 100%;
-    margin: 0;
+@media (min-width: 768px) { /* Targeting medium to large screens */
+    body {
+        width: 500px;
+        margin: 10em auto; /* Centers the body */
+    }
 }
 
-#intro {
+@media (max-width: 767px) { /* Targeting small screens */
+    body {
+        width: auto;
+        margin: 10em 25px; /* Adds margin */
+    }
+}
+
+#spin {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
 }
 
-#intro {
+#spin {
     animation: spin 20s linear infinite;
 }
 
