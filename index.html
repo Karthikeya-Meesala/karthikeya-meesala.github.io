@@ -34,6 +34,25 @@
             </ul>
         </div>
 
+        <div id="content"></div>
+        <script>
+            // Function to extract the file name from the URL
+            function getFileName() {
+                const path = window.location.pathname;
+                const baseName = path.split('/').pop(); // gets the last segment after '/'
+                return baseName ? `${baseName}.txt` : 'default.txt'; // default file if no name provided
+            }
+    
+            // Fetch and display the content
+            const fileName = getFileName();
+            fetch(fileName)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('content').innerHTML = html;
+                })
+                .catch(err => console.error('Failed to load page content:', err));
+        </script>
+
 
     <div class="timeline">
         <div class="timeline-item">
