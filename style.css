@@ -1,51 +1,76 @@
-@media (min-width: 768px) { /* Targeting medium to large screens */
+
+@media (min-width: 768px) {
     body {
         width: 500px;
+        margin: 10em auto;
         height: auto;
-        margin: 10em auto; /* Centers the body */
     }
 }
 
-@media (max-width: 767px) { /* Targeting small screens */
+@media (max-width: 767px) {
     body {
-        width: auto;
-        margin: 10em 25px; /* Adds margin */
+        width: 100%;
+        margin: 10em 25px;
     }
+}
+
+* body {
+    background-color: fffef1;
+}
+
+* img {
+    width: 45%;
+    height: auto;
 }
 
 .note {
+    display: flex;
+    column-gap: 10px;
     padding-top: 50px;
 }
 
 .links {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .links > * {
-  flex: 1 1 33%;
+    flex: 1 1 33%;
 }
 
-.links > li:hover {
-font-size: 1.1em;
+.footer {
+    width: inherit;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: end;
 }
 
 #spin {
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-#spin {
     animation: spin 20s linear infinite;
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Positioning for blog elements */
+.blog {
+    position: relative;
+    top: 20px;
+}
+
+.blog-post {
+    position: relative;
+    padding: 10px 20px;
+}
+
+.blog-post p {
+    margin: 0;
 }
