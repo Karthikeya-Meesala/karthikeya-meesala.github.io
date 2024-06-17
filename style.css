@@ -10,14 +10,13 @@
 @media (max-width: 767px) {
     body {
         width: 100%;
-        margin: 10em 25px;
+        margin: 10em auto;
     }
 }
 
 body {
     background-color: fffef1;
     box-sizing: border-box;
-
 }
 
 * img {
