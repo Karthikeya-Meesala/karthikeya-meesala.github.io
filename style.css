@@ -14,8 +14,10 @@
     }
 }
 
-* body {
+body {
     background-color: fffef1;
+    box-sizing: border-box;
+
 }
 
 * img {
