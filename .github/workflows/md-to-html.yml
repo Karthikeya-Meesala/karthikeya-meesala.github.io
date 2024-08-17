@@ -1,9 +1,9 @@
-name: Convert MD to HTML
+name: Convert Markdown to HTML
 
 on:
   push:
     paths:
-      - 'md/**/*.md'
+      - 'md/*.md'
 
 jobs:
   convert-md-to-html:
@@ -27,49 +27,74 @@ jobs:
               const fs = require('fs');
               const marked = require('marked');
               const md = fs.readFileSync('$file', 'utf-8');
-              const html = marked.parse(md);
+              const html = marked(md);
               const template = \`
-              <!DOCTYPE html>
-              <html lang="en">
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>$filename</title>
-                <style>
-                  body {
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                  }
-                  .home-link {
-                    position: fixed;
-                    top: 20px;
-                    left: 20px;
-                  }
-                  @media (max-width: 768px) {
+                <!DOCTYPE html>
+                <html lang='en'>
+                <head>
+                  <meta charset='UTF-8'>
+                  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                  <title>\${html.match(/<h1>(.*?)<\\/h1>/)[1]}</title>
+                  <style>
                     body {
-                      padding: 40px 15px 20px;
+                      font-family: Arial, sans-serif;
+                      line-height: 1.6;
+                      color: #333;
+                      max-width: 800px;
+                      margin: 0 auto;
+                      padding: 20px;
                     }
-                  }
-                </style>
-              </head>
-              <body>
-                <a href="/" class="home-link">Home</a>
-                \${html}
-              </body>
-              </html>
+                    @media (max-width: 600px) {
+                      body {
+                        padding: 30px 15px 20px;
+                      }
+                    }
+                    .home-link {
+                      position: absolute;
+                      top: 20px;
+                      left: 20px;
+                    }
+                    h1, h2 {
+                      color: #2c3e50;
+                    }
+                    a {
+                      color: #3498db;
+                      text-decoration: none;
+                    }
+                    a:hover {
+                      text-decoration: underline;
+                    }
+                    blockquote {
+                      border-left: 4px solid #3498db;
+                      padding-left: 20px;
+                      margin-left: 0;
+                      font-style: italic;
+                      color: #7f8c8d;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <a href='/' class='home-link'>Home</a>
+                  \${html}
+                </body>
+                </html>
               \`;
               fs.writeFileSync('posts/$filename.html', template);
             "
+          done
+
+      - name: Update index.html
+        run: |
+          for file in posts/*.html; do
+            filename=$(basename "$file" .html)
+            title=$(grep -oP '(?<=<title>).*(?=</title>)' "$file")
+            sed -i "/<\!-- <li><a href=\"#blog-post-id\">blog post title<\/a><\/li> -->/i\                <li><a href=\"/posts/$filename.html\">$title</a></li>" index.html
           done
 
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add posts/*.html
-          git commit -m "Convert MD to HTML" || echo "No changes to commit"
+          git add posts/*.html index.html
+          git commit -m "Convert MD to HTML and update index" || exit 0
           git push
