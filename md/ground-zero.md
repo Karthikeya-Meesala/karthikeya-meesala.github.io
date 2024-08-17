@@ -2,7 +2,7 @@
 
 # ground zero
 
-## Blog Subtitle
+## here i am, at the ground zero.
 
 Blog content goes here. You can write about your thoughts, experiences, or anything you want to share with your readers.
 
