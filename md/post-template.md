@@ -1,5 +1,3 @@
-
-
 # Blog Title
 
 ## Blog Subtitle

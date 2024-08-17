@@ -61,7 +61,8 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Positioning for blog elements */
+/*
+Positioning for blog elements
 .blog {
     position: relative;
     top: 20px;
@@ -75,3 +76,55 @@ body {
 .blog-post p {
     margin: 0;
 }
+*/
+
+/* Styles for generated posts */
+.home-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2em;
+    text-decoration: none;
+  }
+  
+  .content {
+    max-width: 800px;
+    margin: 60px auto 20px;
+    padding: 0 20px;
+  }
+  
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+  }
+  
+  footer a {
+    text-decoration: none;
+    margin: 0 10px;
+  }
+  
+  @media (max-width: 768px) {
+    .home-link {
+      position: absolute;
+    }
+  
+    .content {
+      margin-top: 80px;
+    }
+  }
+  
+  /* Ensure images don't exceed container width */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Style for blockquotes */
+  blockquote {
+    border-left: 4px solid #3498db;
+    padding-left: 20px;
+    margin-left: 0;
+    font-style: italic;
+    color: #7f8c8d;
+  }

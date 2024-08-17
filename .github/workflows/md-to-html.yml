@@ -1,15 +1,22 @@
-name: Convert Markdown to HTML
+name: Convert Markdown to HTML and Deploy
 
 on:
   push:
     paths:
       - 'md/*.md'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  convert-md-to-html:
+  convert-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,7 +40,11 @@ jobs:
                 const md = fs.readFileSync('$file', 'utf-8');
                 const html = marked.parse(md);
                 
-                const title = (html.match(/<h1>(.*?)<\\/h1>/) || [])[1] || 'Untitled';
+                let title = 'Untitled';
+                const titleMatch = html.match(/<h1>(.*?)<\\/h1>/) || html.match(/<h2>(.*?)<\\/h2>/);
+                if (titleMatch) {
+                  title = titleMatch[1];
+                }
                 
                 const template = \`
                   <!DOCTYPE html>
@@ -42,47 +53,17 @@ jobs:
                     <meta charset='UTF-8'>
                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
                     <title>\${title}</title>
-                    <style>
-                      body {
-                        font-family: Arial, sans-serif;
-                        line-height: 1.6;
-                        color: #333;
-                        max-width: 800px;
-                        margin: 0 auto;
-                        padding: 20px;
-                      }
-                      @media (max-width: 600px) {
-                        body {
-                          padding: 30px 15px 20px;
-                        }
-                      }
-                      .home-link {
-                        position: absolute;
-                        top: 20px;
-                        left: 20px;
-                      }
-                      h1, h2 {
-                        color: #2c3e50;
-                      }
-                      a {
-                        color: #3498db;
-                        text-decoration: none;
-                      }
-                      a:hover {
-                        text-decoration: underline;
-                      }
-                      blockquote {
-                        border-left: 4px solid #3498db;
-                        padding-left: 20px;
-                        margin-left: 0;
-                        font-style: italic;
-                        color: #7f8c8d;
-                      }
-                    </style>
+                    <link rel='stylesheet' href='/style.css'>
                   </head>
                   <body>
-                    <a href='/' class='home-link'>Home</a>
-                    \${html}
+                    <a href='/' class='home-link'>home</a>
+                    <div class='content'>
+                      \${html.replace(/src=\"media\//g, 'src="/media/')}
+                    </div>
+                    <footer>
+                      <a href='https://x.com/karthikeyam'>twitter</a> /
+                      <a href='https://www.linkedin.com/in/karthikeyam/'>linkedin</a>
+                    </footer>
                   </body>
                   </html>
                 \`;
@@ -99,33 +80,29 @@ jobs:
 
       - name: Update index.html
         run: |
-          if [ ! -f index.html ]; then
-            echo "index.html not found. Creating a basic version."
-            cat > index.html <<EOL
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>My Blog</title>
-          </head>
-          <body>
-            <h1>My Blog Posts</h1>
-            <ul class="links">
-              <!-- Blog post links will be added here -->
-            </ul>
-          </body>
-          </html>
-          EOL
-          fi
+          existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
+          current_files=$(ls posts/*.html | xargs -n 1 basename .html)
+          
+          for file in $current_files; do
+            if ! echo "$existing_links" | grep -q "$file"; then
+              title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
+              sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
+            fi
+          done
+          
+          for link in $existing_links; do
+            if ! echo "$current_files" | grep -q "$link"; then
+              sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
+            fi
+          done
 
-          for file in posts/*.html; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file" .html)
-              title=$(grep -oP '(?<=<title>).*(?=</title>)' "$file" || echo "$filename")
-              if ! grep -q "$filename.html" index.html; then
-                sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$filename.html\">$title</a></li>" index.html
-              fi
+      - name: Remove deleted HTML files
+        run: |
+          for html_file in posts/*.html; do
+            md_file="md/$(basename "$html_file" .html).md"
+            if [ ! -f "$md_file" ]; then
+              rm "$html_file"
+              echo "Removed $html_file"
             fi
           done
 
@@ -135,4 +112,16 @@ jobs:
           git config --local user.name "GitHub Action"
           git add posts/*.html index.html
           git commit -m "Convert MD to HTML and update index" || echo "No changes to commit"
-          git push || echo "No changes to push"
+          git push "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" || echo "No changes to push"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
