@@ -21,74 +21,112 @@ jobs:
 
       - name: Convert MD to HTML
         run: |
+          mkdir -p posts
           for file in md/*.md; do
             filename=$(basename "$file" .md)
             node -e "
               const fs = require('fs');
               const marked = require('marked');
-              const md = fs.readFileSync('$file', 'utf-8');
-              const html = marked.parse(md);
-              const template = \`
-                <!DOCTYPE html>
-                <html lang='en'>
-                <head>
-                  <meta charset='UTF-8'>
-                  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                  <title>\${html.match(/<h1>(.*?)<\\/h1>/)[1]}</title>
-                  <style>
-                    body {
-                      font-family: Arial, sans-serif;
-                      line-height: 1.6;
-                      color: #333;
-                      max-width: 800px;
-                      margin: 0 auto;
-                      padding: 20px;
-                    }
-                    @media (max-width: 600px) {
+              const path = require('path');
+
+              try {
+                const md = fs.readFileSync('$file', 'utf-8');
+                const html = marked.parse(md);
+                
+                const title = (html.match(/<h1>(.*?)<\\/h1>/) || [])[1] || 'Untitled';
+                
+                const template = \`
+                  <!DOCTYPE html>
+                  <html lang='en'>
+                  <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>\${title}</title>
+                    <style>
                       body {
-                        padding: 30px 15px 20px;
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
                       }
-                    }
-                    .home-link {
-                      position: absolute;
-                      top: 20px;
-                      left: 20px;
-                    }
-                    h1, h2 {
-                      color: #2c3e50;
-                    }
-                    a {
-                      color: #3498db;
-                      text-decoration: none;
-                    }
-                    a:hover {
-                      text-decoration: underline;
-                    }
-                    blockquote {
-                      border-left: 4px solid #3498db;
-                      padding-left: 20px;
-                      margin-left: 0;
-                      font-style: italic;
-                      color: #7f8c8d;
-                    }
-                  </style>
-                </head>
-                <body>
-                  <a href='/' class='home-link'>Home</a>
-                  \${html}
-                </body>
-                </html>
-              \`;
-              fs.writeFileSync('posts/$filename.html', template);
+                      @media (max-width: 600px) {
+                        body {
+                          padding: 30px 15px 20px;
+                        }
+                      }
+                      .home-link {
+                        position: absolute;
+                        top: 20px;
+                        left: 20px;
+                      }
+                      h1, h2 {
+                        color: #2c3e50;
+                      }
+                      a {
+                        color: #3498db;
+                        text-decoration: none;
+                      }
+                      a:hover {
+                        text-decoration: underline;
+                      }
+                      blockquote {
+                        border-left: 4px solid #3498db;
+                        padding-left: 20px;
+                        margin-left: 0;
+                        font-style: italic;
+                        color: #7f8c8d;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <a href='/' class='home-link'>Home</a>
+                    \${html}
+                  </body>
+                  </html>
+                \`;
+                
+                const outputPath = path.join('posts', '$filename.html');
+                fs.writeFileSync(outputPath, template);
+                console.log(\`Successfully created \${outputPath}\`);
+              } catch (error) {
+                console.error(\`Error processing \${file}: \${error.message}\`);
+                process.exit(1);
+              }
             "
           done
 
       - name: Update index.html
         run: |
+          if [ ! -f index.html ]; then
+            echo "index.html not found. Creating a basic version."
+            cat > index.html <<EOL
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>My Blog</title>
+          </head>
+          <body>
+            <h1>My Blog Posts</h1>
+            <ul class="links">
+              <!-- Blog post links will be added here -->
+            </ul>
+          </body>
+          </html>
+          EOL
+          fi
+
           for file in posts/*.html; do
-            filename=$(basename "$file" .html)
-            title=$(grep -oP '(?<=<title>).*(?=</title>)' "$file")
-            sed -i "/<\!-- <li><a href=\"#blog-post-id\">blog post title<\/a><\/li> -->/i\                <li><a href=\"/posts/$filename.html\">$title</a></li>" index.html
+            if [ -f "$file" ]; then
+              filename=$(basename "$file" .html)
+              title=$(grep -oP '(?<=<title>).*(?=</title>)' "$file" || echo "$filename")
+              if ! grep -q "$filename.html" index.html; then
+                sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$filename.html\">$title</a></li>" index.html
+              fi
+            fi
           done
 
       - name: Commit and push changes
@@ -96,5 +134,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add posts/*.html index.html
-          git commit -m "Convert MD to HTML and update index" || exit 0
-          git push
+          git commit -m "Convert MD to HTML and update index" || echo "No changes to commit"
+          git push || echo "No changes to push"
