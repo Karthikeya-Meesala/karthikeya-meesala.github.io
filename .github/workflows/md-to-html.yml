@@ -31,17 +31,17 @@ jobs:
           mkdir -p posts
           for file in md/*.md; do
             filename=$(basename "$file" .md)
-            node -e "
+            node << EOF
               const fs = require('fs');
               const marked = require('marked');
               const path = require('path');
 
               try {
-                const md = fs.readFileSync('$file', 'utf-8');
+                const md = fs.readFileSync('${file}', 'utf-8');
                 const html = marked.parse(md);
                 
                 let title = 'Untitled';
-                const titleMatch = html.match(/<h1>(.*?)<\\/h1>/) || html.match(/<h2>(.*?)<\\/h2>/);
+                const titleMatch = html.match(/<h1>(.*?)<\/h1>/) || html.match(/<h2>(.*?)<\/h2>/);
                 if (titleMatch) {
                   title = titleMatch[1];
                 }
@@ -58,7 +58,7 @@ jobs:
                   <body>
                     <a href='/' class='home-link'>home</a>
                     <div class='content'>
-                      \${html.replace(/src=\"media\//g, 'src="/media/')}
+                      \${html.replace(/src="media\//g, 'src="/media/')}
                     </div>
                     <footer>
                       <a href='https://x.com/karthikeyam'>twitter</a> /
@@ -68,14 +68,14 @@ jobs:
                   </html>
                 \`;
                 
-                const outputPath = path.join('posts', '$filename.html');
+                const outputPath = path.join('posts', '${filename}.html');
                 fs.writeFileSync(outputPath, template);
                 console.log(\`Successfully created \${outputPath}\`);
               } catch (error) {
-                console.error(\`Error processing \${file}: \${error.message}\`);
+                console.error(\`Error processing ${file}: \${error.message}\`);
                 process.exit(1);
               }
-            "
+          EOF
           done
 
       - name: Update index.html
