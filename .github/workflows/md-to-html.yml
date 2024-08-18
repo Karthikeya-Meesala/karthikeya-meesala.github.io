@@ -89,22 +89,22 @@ jobs:
           done
 
       - name: Update index.html
-        run: |
-          existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
-          current_files=$(ls posts/*.html | xargs -n 1 basename .html)
-          
-          for file in $current_files; do
-            if ! echo "$existing_links" | grep -q "$file"; then
-              title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
-              sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
-            fi
-          done
-          
-          for link in $existing_links; do
-            if ! echo "$current_files" | grep -q "$link"; then
-              sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
-            fi
-          done
+              run: |
+                existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
+                current_files=$(ls posts/*.html | xargs -n 1 basename .html)
+                
+                for file in $current_files; do
+                  if ! echo "$existing_links" | grep -q "$file"; then
+                    title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
+                    sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
+                  fi
+                done
+                
+                for link in $existing_links; do
+                  if ! echo "$current_files" | grep -q "$link"; then
+                    sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
+                  fi
+                done
 
       - name: Remove deleted HTML files
         run: |
