@@ -31,7 +31,54 @@ jobs:
       - name: Create converter script
         run: |
           cat > convert.js <<'EOL'
-          # Your existing convert.js content here
+          const fs = require('fs');
+          const marked = require('marked');
+          const path = require('path');
+
+          function convertMdToHtml(inputFile) {
+            try {
+              const md = fs.readFileSync(inputFile, 'utf-8');
+              const html = marked.parse(md);
+              
+              let title = 'Untitled';
+              const titleMatch = html.match(/<h1>(.*?)<\/h1>/) || html.match(/<h2>(.*?)<\/h2>/);
+              if (titleMatch) {
+                title = titleMatch[1];
+              }
+              
+              const template = `
+                <!DOCTYPE html>
+                <html lang='en'>
+                <head>
+                  <meta charset='UTF-8'>
+                  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                  <title>${title}</title>
+                  <link rel='stylesheet' href='/style.css'>
+                </head>
+                <body>
+                  <a href='/' class='home-link'>home</a>
+                  <div class='content'>
+                    ${html.replace(/src="media\//g, 'src="/media/')}
+                  </div>
+                  <footer>
+                    <a href='https://x.com/karthikeyam'>twitter</a> /
+                    <a href='https://www.linkedin.com/in/karthikeyam/'>linkedin</a>
+                  </footer>
+                </body>
+                </html>
+              `;
+              
+              const outputPath = path.join('posts', path.basename(inputFile, '.md') + '.html');
+              fs.writeFileSync(outputPath, template);
+              console.log(`Successfully created ${outputPath}`);
+            } catch (error) {
+              console.error(`Error processing ${inputFile}: ${error.message}`);
+              process.exit(1);
+            }
+          }
+
+          const inputFile = process.argv[2];
+          convertMdToHtml(inputFile);
           EOL
 
       - name: Convert MD to HTML
@@ -43,11 +90,31 @@ jobs:
 
       - name: Update index.html
         run: |
-          # Your existing update index.html script here
+          existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
+          current_files=$(ls posts/*.html | xargs -n 1 basename .html)
+          
+          for file in $current_files; do
+            if ! echo "$existing_links" | grep -q "$file"; then
+              title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
+              sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
+            fi
+          done
+          
+          for link in $existing_links; do
+            if ! echo "$current_files" | grep -q "$link"; then
+              sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
+            fi
+          done
 
       - name: Remove deleted HTML files
         run: |
-          # Your existing remove deleted HTML files script here
+          for html_file in posts/*.html; do
+            md_file="md/$(basename "$html_file" .html).md"
+            if [ ! -f "$md_file" ]; then
+              rm "$html_file"
+              echo "Removed $html_file"
+            fi
+          done
 
       - name: Commit changes
         run: |
@@ -59,16 +126,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./
-          destination: ./_site
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
