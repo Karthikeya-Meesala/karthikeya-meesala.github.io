@@ -80,9 +80,6 @@ Positioning for blog elements
 
 /* Styles for generated posts */
 .home-link {
-    position: fixed;
-    top: 20px;
-    left: 20px;
     font-size: 1.2em;
     text-decoration: none;
   }
