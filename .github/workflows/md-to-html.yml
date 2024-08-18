@@ -1,4 +1,4 @@
-name: Convert Markdown to HTML and Deploy
+name: Convert Markdown to HTML, Commit, and Deploy
 
 on:
   push:
@@ -8,12 +8,12 @@ on:
       - main  # or your default branch name
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 jobs:
-  build-and-deploy:
+  build-commit-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -55,7 +55,7 @@ jobs:
                   <meta charset='UTF-8'>
                   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
                   <title>${title}</title>
-                  <link rel='stylesheet' href='/style.css'>
+                  <link rel="stylesheet" href="../style.css">
                 </head>
                 <body>
                   <a href='/' class='home-link'>home</a>
@@ -140,6 +140,13 @@ jobs:
             echo "created_placeholder=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posts/*.html index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update HTML files and index" && git push)
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
@@ -156,4 +163,8 @@ jobs:
         if: steps.check_content.outputs.created_placeholder == 'true'
         run: |
           rm -f posts/placeholder.html
-          echo "Removed placeholder HTML file."
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posts/placeholder.html
+          git commit -m "Remove placeholder HTML file" || echo "No changes to commit"
+          git push
