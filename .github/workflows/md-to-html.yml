@@ -131,12 +131,6 @@ jobs:
         with:
           path: '.'
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Push changes
         if: success()
         uses: ad-m/github-push-action@master
