@@ -4,7 +4,7 @@
 
 #### here i am, at the ground zero. 
 
-feeling great about this -- let's see what future holds for me.
+feeling great about this - let's see what future holds for me.
 
 ---
 
