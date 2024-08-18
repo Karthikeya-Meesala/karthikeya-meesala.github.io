@@ -1,67 +1,76 @@
-
-@media (min-width: 768px) {
-    body {
-        width: 500px;
-        margin: 10em auto;
-        height: auto;
-    }
-}
-
-@media (max-width: 767px) {
-    body {
-        width: 100%;
-        margin: 10em auto;
-    }
-}
-
+/* Base styles */
 body {
     background-color: #fffef1;
     box-sizing: border-box;
-}
-
-* img {
-    width: 45%;
+    margin: 10em auto;
+  }
+  
+  /* Media queries */
+  @media (min-width: 768px) {
+    body {
+      max-width: 800px;
+      padding: 0 20px;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    body {
+      width: 100%;
+    }
+    .content {
+      margin-top: 80px;
+    }
+  }
+  
+  /* Image styles */
+  img {
+    max-width: 100%;
     height: auto;
-}
-
-.note {
+  }
+  
+  * img {
+    width: 45%;
+  }
+  
+  /* Layout components */
+  .note {
     display: flex;
     column-gap: 10px;
     padding-top: 50px;
-}
-
-.links {
+  }
+  
+  .links {
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
-}
-
-.links > * {
+  }
+  
+  .links > * {
     flex: 1 1 33%;
-}
-
-.footer {
+  }
+  
+  .footer {
     width: inherit;
     padding-top: 10px;
     display: flex;
-    flex-direction: row;
     gap: 10px;
-    justify-content: end;
-}
-
-#spin {
+    justify-content: flex-end;
+  }
+  
+  /* Animation */
+  #spin {
     display: flex;
     justify-content: center;
     align-items: center;
     animation: spin 20s linear infinite;
-}
-
-@keyframes spin {
+  }
+  
+  @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
-}
-
-.home-link {
+  }
+  
+  /* Typography and content */
+  .home-link {
     font-size: 1.2em;
     text-decoration: none;
   }
@@ -83,19 +92,6 @@ body {
     margin: 0 10px;
   }
   
-  @media (max-width: 768px) {
-    .content {
-      margin-top: 80px;
-    }
-  }
-  
-  /* Ensure images don't exceed container width */
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  /* Style for blockquotes */
   blockquote {
     border-left: 4px solid #282828;
     padding-left: 20px;
