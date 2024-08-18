@@ -28,7 +28,7 @@ jobs:
 
       - name: Create converter script
         run: |
-          cat > convert.js <<EOL
+          cat > convert.js <<'EOL'
           const fs = require('fs');
           const marked = require('marked');
           const path = require('path');
