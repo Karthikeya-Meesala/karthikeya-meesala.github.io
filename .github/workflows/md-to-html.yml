@@ -123,17 +123,24 @@ jobs:
           git add posts/*.html index.html
           git commit -m "Convert MD to HTML and update index" || echo "No changes to commit"
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
       - name: Push changes
-        if: success()
+        if: steps.commit.outputs.changes == 'true'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
+
+      - name: Setup Pages
+        if: steps.commit.outputs.changes == 'true'
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        if: steps.commit.outputs.changes == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        if: steps.commit.outputs.changes == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
