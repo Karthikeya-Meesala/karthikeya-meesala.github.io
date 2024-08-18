@@ -14,7 +14,7 @@
     }
 }
 
-body {
+body, #content {
     background-color: fffef1;
     box-sizing: border-box;
 }
