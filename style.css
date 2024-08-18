@@ -14,7 +14,7 @@
     }
 }
 
-body, #content {
+body {
     background-color: fffef1;
     box-sizing: border-box;
 }
@@ -61,24 +61,6 @@ body, #content {
     to { transform: rotate(360deg); }
 }
 
-/*
-Positioning for blog elements
-.blog {
-    position: relative;
-    top: 20px;
-}
-
-.blog-post {
-    position: relative;
-    padding: 10px 20px;
-}
-
-.blog-post p {
-    margin: 0;
-}
-*/
-
-/* Styles for generated posts */
 .home-link {
     font-size: 1.2em;
     text-decoration: none;
@@ -102,10 +84,6 @@ Positioning for blog elements
   }
   
   @media (max-width: 768px) {
-    .home-link {
-      position: absolute;
-    }
-  
     .content {
       margin-top: 80px;
     }
