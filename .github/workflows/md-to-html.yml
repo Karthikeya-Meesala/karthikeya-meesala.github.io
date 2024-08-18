@@ -7,18 +7,20 @@ on:
     branches:
       - main  # or your default branch name
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  convert-and-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -90,21 +92,21 @@ jobs:
 
       - name: Update index.html
         run: |
-                existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
-                current_files=$(ls posts/*.html | xargs -n 1 basename .html)
-                
-                for file in $current_files; do
-                  if ! echo "$existing_links" | grep -q "$file"; then
-                    title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
-                    sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
-                  fi
-                done
-                
-                for link in $existing_links; do
-                  if ! echo "$current_files" | grep -q "$link"; then
-                    sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
-                  fi
-                done
+          existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
+          current_files=$(ls posts/*.html | xargs -n 1 basename .html)
+          
+          for file in $current_files; do
+            if ! echo "$existing_links" | grep -q "$file"; then
+              title=$(grep -oP '(?<=<title>).*(?=</title>)' "posts/$file.html" || echo "$file")
+              sed -i "/<ul class=\"links\">/a\        <li><a href=\"/posts/$file.html\">$title</a></li>" index.html
+            fi
+          done
+          
+          for link in $existing_links; do
+            if ! echo "$current_files" | grep -q "$link"; then
+              sed -i "/href=\"\/posts\/$link\.html\"/d" index.html
+            fi
+          done
 
       - name: Remove deleted HTML files
         run: |
@@ -116,31 +118,14 @@ jobs:
             fi
           done
 
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add posts/*.html index.html
-          git commit -m "Convert MD to HTML and update index" || echo "No changes to commit"
-
-      - name: Push changes
-        if: steps.commit.outputs.changes == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-
       - name: Setup Pages
-        if: steps.commit.outputs.changes == 'true'
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
-        if: steps.commit.outputs.changes == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
-        if: steps.commit.outputs.changes == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
