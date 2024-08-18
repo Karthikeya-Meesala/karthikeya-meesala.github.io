@@ -89,7 +89,7 @@ jobs:
           done
 
       - name: Update index.html
-              run: |
+        run: |
                 existing_links=$(grep -oP '(?<=href="/posts/).*(?=\.html">)' index.html || echo "")
                 current_files=$(ls posts/*.html | xargs -n 1 basename .html)
                 
