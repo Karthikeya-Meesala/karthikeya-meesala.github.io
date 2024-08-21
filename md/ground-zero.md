@@ -1,8 +1,8 @@
-# ground zero
+# nothing happened.
 
 ![zoro](media/ground-zero.png)
 
-##### here i am, at the ground zero. 
+##### this particular moment from one-piece is just crazy. no matter what life throws at you, you need to step up and do whatever you can to keep going.
 
 ---
 
