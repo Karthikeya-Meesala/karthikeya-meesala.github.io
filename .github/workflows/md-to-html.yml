@@ -110,12 +110,9 @@ jobs:
 
       - name: Update index.html
         run: |
-
           content=$(cat index.html)
-          
           start_marker='<ul class="links">'
           end_marker='</ul>'
-        
           new_links="$start_marker"
           for html_file in posts/*.html; do
             [ -e "$html_file" ] || continue
@@ -124,9 +121,9 @@ jobs:
             new_links+=$'\n    <li><a href="/posts/'"$filename"'">'"$title"'</a></li>'
           done
           new_links+=$'\n'"$end_marker"
-          
-          updated_content=$(echo "$content" | sed -e "/$start_marker/,/$end_marker/c\\$new_links")
-          
+          before_links=${content%%$start_marker*}
+          after_links=${content#*$end_marker}
+          updated_content="$before_links$new_links$after_links"
           echo "$updated_content" > index.html
 
       - name: Check for content
