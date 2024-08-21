@@ -110,24 +110,24 @@ jobs:
 
       - name: Update index.html
         run: |
-          if [ ! -f index.html ]; then
-            echo "index.html not found. Creating a basic one."
-            echo "<html><body><ul class=\"links\"></ul></body></html>" > index.html
-          fi
+
+          content=$(cat index.html)
           
-          # Clear existing links
-          sed -i '/<ul class="links">/,/<\/ul>/c\<ul class="links">' index.html
-          
-          # Add new links
+          start_marker='<ul class="links">'
+          end_marker='</ul>'
+        
+          new_links="$start_marker"
           for html_file in posts/*.html; do
-            [ -e "$html_file" ] || continue  # Skip if no HTML files exist
+            [ -e "$html_file" ] || continue
             filename=$(basename "$html_file")
             title=$(grep -oP '(?<=<title>).*(?=</title>)' "$html_file" || echo "${filename%.*}")
-            echo "  <li><a href=\"/posts/$filename\">$title</a></li>" >> index.html
+            new_links+=$'\n    <li><a href="/posts/'"$filename"'">'"$title"'</a></li>'
           done
+          new_links+=$'\n'"$end_marker"
           
-          # Close the list
-          echo "</ul>" >> index.html
+          updated_content=$(echo "$content" | sed -e "/$start_marker/,/$end_marker/c\\$new_links")
+          
+          echo "$updated_content" > index.html
 
       - name: Check for content
         id: check_content
