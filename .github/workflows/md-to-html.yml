@@ -59,10 +59,11 @@ jobs:
                 </head>
                 <body>
                   <div class='content'>
-                    <a href='/' class='home-link'>home</a>
+                    <a href='/' class='home-link'>>home</a>
                     ${html.replace(/src="media\//g, 'src="/media/')}
                   </div>
                   <footer>
+                    <a href='/'>home</a> /
                     <a href='https://x.com/karthikeyam'>twitter</a> /
                     <a href='https://www.linkedin.com/in/karthikeyam/'>linkedin</a>
                   </footer>
