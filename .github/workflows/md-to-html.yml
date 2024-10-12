@@ -1,0 +1,199 @@
+name: Convert Markdown to HTML, Commit, and Deploy
+
+on:
+  push:
+    paths:
+      - 'md/**'
+    branches:
+      - main  # or your default branch name
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-commit-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install marked
+
+      - name: Create converter script
+        run: |
+          cat > convert.js <<'EOL'
+          const fs = require('fs');
+          const marked = require('marked');
+          const path = require('path');
+
+          // Add error handling
+          process.on('uncaughtException', function (err) {
+            console.error('Uncaught exception:', err);
+            process.exit(1);
+          });
+          process.on('unhandledRejection', function (err) {
+            console.error('Unhandled rejection:', err);
+            process.exit(1);
+          });
+
+          function convertMdToHtml(inputFile) {
+            try {
+              const md = fs.readFileSync(inputFile, 'utf-8');
+              const html = marked.parse(md);
+
+              let title = 'Untitled';
+              // Modify regex to handle multiline HTML
+              const titleMatch = html.match(/<h[12]>(.*?)<\/h[12]>/s);
+              if (titleMatch) {
+                title = titleMatch[1];
+              }
+
+              // Enclose the template in backticks
+              const template = `
+                <!DOCTYPE html>
+                <html lang='en'>
+                <head>
+                  <meta charset='UTF-8'>
+                  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                  <title>${title}</title>
+                  <link rel="stylesheet" href="/style.css">
+                </head>
+                <body>
+                  <div class='content'>
+                    <a href='/' class='home-link'>>home</a>
+                    ${html.replace(/src="media\//g, 'src="/media/')}
+                  </div>
+                  <footer>
+                    <a href='/'>home</a> /
+                    <a href='https://x.com/karthikeyam'>twitter</a> /
+                    <a href='https://www.linkedin.com/in/karthikeyam/'>linkedin</a>
+                  </footer>
+                </body>
+                </html>
+              `;
+
+              const outputPath = path.join('posts', path.basename(inputFile, '.md') + '.html');
+              fs.writeFileSync(outputPath, template);
+              console.log(`Successfully created ${outputPath}`);
+            } catch (error) {
+              console.error(`Error processing ${inputFile}: ${error.message}`);
+              process.exit(1);
+            }
+          }
+
+          const inputFile = process.argv[2];
+          convertMdToHtml(inputFile);
+          EOL
+
+      - name: Convert MD to HTML
+        run: |
+          shopt -s nullglob
+          mkdir -p posts
+          md_files=(md/*.md)
+          if [ ${#md_files[@]} -eq 0 ]; then
+            echo "No Markdown files found. Removing all HTML files."
+            rm -f posts/*.html
+          else
+            for file in "${md_files[@]}"; do
+              node convert.js "$file"
+            done
+          fi
+
+      - name: Remove deleted HTML files
+        run: |
+          shopt -s nullglob
+          for html_file in posts/*.html; do
+            md_file="md/$(basename "$html_file" .html).md"
+            if [ ! -f "$md_file" ]; then
+              rm "$html_file"
+              echo "Removed $html_file"
+            fi
+          done
+
+      - name: Update index.html
+        run: |
+          content=$(cat index.html)
+          start_marker='<ul class="links">'
+          end_marker='</ul>'
+          if [[ "$content" == *"$start_marker"* && "$content" == *"$end_marker"* ]]; then
+            new_links="$start_marker"
+            shopt -s nullglob
+            for html_file in posts/*.html; do
+              filename=$(basename "$html_file")
+              title=$(grep -oP '(?<=<title>).*?(?=</title>)' "$html_file" || echo "${filename%.*}")
+              new_links+=$'\n    <li><a href="/posts/'"$filename"'">'"$title"'</a></li>'
+            done
+            new_links+=$'\n'"$end_marker"
+            before_links=${content%%$start_marker*}$start_marker
+            after_links=${content#*$end_marker}
+            updated_content="$before_links$new_links$after_links"
+            echo "$updated_content" > index.html
+          else
+            echo "Markers not found in index.html. Update aborted."
+            exit 1
+          fi
+
+      - name: Check for content
+        id: check_content
+        run: |
+          shopt -s nullglob
+          html_files=(posts/*.html)
+          if [ ${#html_files[@]} -eq 0 ]; then
+            echo "No HTML files found in posts directory. Creating a placeholder."
+            mkdir -p posts
+            echo "<html><body><h1>No content available</h1></body></html>" > posts/placeholder.html
+            echo "created_placeholder=true" >> $GITHUB_OUTPUT
+          else
+            echo "created_placeholder=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posts/*.html index.html
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update HTML files and index"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Cleanup placeholder
+        if: steps.check_content.outputs.created_placeholder == 'true'
+        run: |
+          rm -f posts/placeholder.html
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posts/placeholder.html
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Remove placeholder HTML file"
+            git push
+          else
+            echo "No placeholder to remove."
+          fi
