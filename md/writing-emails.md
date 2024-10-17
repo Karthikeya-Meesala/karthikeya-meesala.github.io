@@ -1,7 +1,5 @@
 # writing emails
 
-![writing emails](media/writing-emails.png)
-
 writing good emails is an actual skill, and well crafted emails tend to get reverts lot faster than you think. i follow the below when writing emails.
 
 - 2-3 paragraphs at most with 2 lines each.
