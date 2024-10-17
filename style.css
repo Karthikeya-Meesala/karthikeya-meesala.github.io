@@ -25,6 +25,13 @@ body {
     .content {
       margin-top: 80px;
     }
+    .links {
+      flex-direction: column; /* Stack links vertically */
+    }
+    
+    .links > * {
+      flex-basis: 100%;
+    }
   }
   
   /* Image styles */
@@ -51,6 +58,7 @@ body {
   
   .links > * {
     flex: 1 1 33%;
+    margin-bottom: 10px;
   }
   
   .footer {
