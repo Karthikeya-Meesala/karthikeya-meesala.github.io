@@ -2,7 +2,7 @@
 
 ![zoro](media/ground-zero.png)
 
-my top frame from from one piece. 
+my top frame from one piece. 
 
 ---
 
