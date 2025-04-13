@@ -1,4 +1,4 @@
-# !billion dollar idea. 
+# execution. 
 
 there's no billion dollar idea. no one will steal your idea, it's literally worth nothing.
 
